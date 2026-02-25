@@ -1,4 +1,3 @@
-import { IconFontFill } from '@/components/icon-font';
 import { RAGFlowAvatar } from '@/components/ragflow-avatar';
 import { useTheme } from '@/components/theme-provider';
 import { Button } from '@/components/ui/button';
@@ -41,7 +40,6 @@ const PathMap = {
   [Routes.Datasets]: [Routes.Datasets],
   [Routes.Chats]: [Routes.Chats],
   [Routes.Searches]: [Routes.Searches],
-  [Routes.Agents]: [Routes.Agents],
   [Routes.Memories]: [Routes.Memories, Routes.Memory, Routes.MemoryMessage],
   [Routes.Files]: [Routes.Files],
 } as const;
@@ -78,7 +76,6 @@ export function Header() {
       { path: Routes.Datasets, name: t('header.dataset'), icon: Library },
       { path: Routes.Chats, name: t('header.chat'), icon: MessageSquareText },
       { path: Routes.Searches, name: t('header.search'), icon: Search },
-      { path: Routes.Agents, name: t('header.flow'), icon: Cpu },
       { path: Routes.Memories, name: t('header.memories'), icon: Cpu },
       { path: Routes.Files, name: t('header.fileManager'), icon: File },
     ],
@@ -147,20 +144,6 @@ export function Header() {
         activeClassName="text-bg-base bg-metallic-gradient border-b-[#00BEB4] border-b-2"
       ></Segmented>
       <div className="flex items-center gap-5 text-text-badge">
-        <a
-          target="_blank"
-          href="https://discord.com/invite/NjYzJD3GM3"
-          rel="noreferrer"
-        >
-          <IconFontFill name="a-DiscordIconSVGVectorIcon"></IconFontFill>
-        </a>
-        <a
-          target="_blank"
-          href="https://github.com/infiniflow/ragflow"
-          rel="noreferrer"
-        >
-          <IconFontFill name="GitHub"></IconFontFill>
-        </a>
         <DropdownMenu>
           <DropdownMenuTrigger>
             <div className="flex items-center gap-1">
