@@ -5,6 +5,7 @@ import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { upperFirst } from 'lodash';
 import { initReactI18next } from 'react-i18next';
+import translation_de from './de';
 import translation_en from './en';
 
 //The language is based on the .ng file stored in the client's local storage.
@@ -12,6 +13,7 @@ import translation_en from './en';
 // When a user logs in from a different machine, the login page language is the language configured by VITE_DEFAULT_LANGUAGE_CODE.
 
 const languageImports: Record<string, () => Promise<{ default: any }>> = {
+  [LanguageAbbreviation.De]: () => import('./de'),
   [LanguageAbbreviation.En]: () => import('./en'),
   [LanguageAbbreviation.Zh]: () => import('./zh'),
   [LanguageAbbreviation.ZhTraditional]: () => import('./zh-traditional'),
@@ -21,7 +23,6 @@ const languageImports: Record<string, () => Promise<{ default: any }>> = {
   [LanguageAbbreviation.Vi]: () => import('./vi'),
   [LanguageAbbreviation.Ru]: () => import('./ru'),
   [LanguageAbbreviation.PtBr]: () => import('./pt-br'),
-  [LanguageAbbreviation.De]: () => import('./de'),
   [LanguageAbbreviation.Fr]: () => import('./fr'),
   [LanguageAbbreviation.It]: () => import('./it'),
   [LanguageAbbreviation.Bg]: () => import('./bg'),
@@ -45,9 +46,10 @@ export const supportedLanguages = supportedLanguageCodes.map((code) => {
 });
 
 export const DEFAULT_LANGUAGE_CODE =
-  import.meta.env.VITE_DEFAULT_LANGUAGE_CODE || LanguageAbbreviation.En;
+  import.meta.env.VITE_DEFAULT_LANGUAGE_CODE || LanguageAbbreviation.De;
 
 const resources = {
+  [LanguageAbbreviation.De]: translation_de,
   [LanguageAbbreviation.En]: translation_en,
 };
 
@@ -68,7 +70,7 @@ i18n
     },
     supportedLngs: supportedLanguageCodes,
     resources,
-    fallbackLng: DEFAULT_LANGUAGE_CODE,
+    fallbackLng: LanguageAbbreviation.En,
     interpolation: {
       escapeValue: false,
     },
@@ -101,6 +103,7 @@ export const changeLanguageAsync = async (lng: string): Promise<void> => {
 
   if (
     normalizedLng !== LanguageAbbreviation.En &&
+    normalizedLng !== LanguageAbbreviation.De &&
     !i18n.hasResourceBundle(normalizedLng, 'translation')
   ) {
     await loadLanguageAsync(normalizedLng);
