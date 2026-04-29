@@ -3,12 +3,7 @@ import * as AvatarPrimitive from '@radix-ui/react-avatar';
 import { forwardRef, memo, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
-const PREDEFINED_COLORS = [
-  { from: '#4F6DEE', to: '#67BDF9' },
-  { from: '#38A04D', to: '#93DCA2' },
-  { from: '#C35F2B', to: '#EDB395' },
-  { from: '#633897', to: '#CBA1FF' },
-];
+const PREDEFINED_COLORS = [{ from: '#9B348E', to: '#ee0000' }];
 
 const getStringHash = (str: string): number => {
   if (typeof str !== 'string') return 0;
@@ -54,8 +49,8 @@ export const RAGFlowAvatar = memo(
     const { initials, from, to } = useMemo(
       () => ({
         initials: getInitials(name),
-        from: 'hsl(0, 0%, 30%)',
-        to: 'hsl(0, 0%, 80%)',
+        from: 'hsl(0, 100%, 46.7%)',
+        to: 'hsl(308, 49.8%, 40.6%)',
         ...(name ? getColorForName(name) : {}),
       }),
       [name],

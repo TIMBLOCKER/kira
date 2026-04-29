@@ -8,7 +8,7 @@ ARG NEED_MIRROR=0
 WORKDIR /ragflow
 
 # copy models downloaded via download_deps.py
-RUN mkdir -p /ragflow/rag/res/deepdoc /root/.ragflow
+RUN mkdir -p /ragflow/rag/res/deepdoc /opt/ragflow_home
 RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/huggingface.co,target=/huggingface.co \
     tar --exclude='.*' -cf - \
         /huggingface.co/InfiniFlow/text_concat_xgb_v1.0 \
@@ -18,12 +18,15 @@ RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/huggingface.co
 # https://github.com/chrismattmann/tika-python
 # This is the only way to run python-tika without internet access. Without this set, the default is to check the tika version and pull latest every time from Apache.
 RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/,target=/deps \
-    cp -r /deps/nltk_data /root/ && \
+    mkdir -p /opt/nltk_data && \
+    cp -r /deps/nltk_data/* /opt/nltk_data/ && \
     cp /deps/tika-server-standard-3.3.0.jar /deps/tika-server-standard-3.3.0.jar.md5 /ragflow/ && \
     cp /deps/cl100k_base.tiktoken /ragflow/9b5ad71b2ce5302211f9c61530b329a4922fc6a4
 
+ENV TIKTOKEN_CACHE_DIR=/ragflow
 ENV TIKA_SERVER_JAR="file:///ragflow/tika-server-standard-3.3.0.jar"
 ENV DEBIAN_FRONTEND=noninteractive
+ENV NLTK_DATA=/opt/nltk_data
 
 # Setup apt
 # Python package and implicit dependencies:
@@ -35,15 +38,30 @@ RUN --mount=type=cache,id=ragflow_apt,target=/var/cache/apt,sharing=locked \
     apt update && \
     apt --no-install-recommends install -y ca-certificates; \
     if [ "$NEED_MIRROR" == "1" ]; then \
-        sed -i 's|http://archive.ubuntu.com/ubuntu|https://mirrors.aliyun.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources; \
-        sed -i 's|http://security.ubuntu.com/ubuntu|https://mirrors.aliyun.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources; \
+        sed -i 's|http://archive.ubuntu.com/ubuntu|https://mirrors.tuna.tsinghua.edu.cn/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources; \
+        sed -i 's|http://security.ubuntu.com/ubuntu|https://mirrors.tuna.tsinghua.edu.cn/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources; \
     fi; \
     rm -f /etc/apt/apt.conf.d/docker-clean && \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
     chmod 1777 /tmp && \
     apt update && \
-    apt install -y \
-    build-essential libglib2.0-0 libglx-mesa0 libgl1 pkg-config libicu-dev libgdiplus default-jdk libatk-bridge2.0-0 libpython3-dev libgtk-4-1 libnss3 xdg-utils libgbm-dev libjemalloc-dev gnupg unzip curl wget git vim less ghostscript pandoc texlive texlive-latex-extra texlive-xetex texlive-lang-chinese fonts-freefont-ttf fonts-noto-cjk postgresql-client
+    apt install -y build-essential && \
+    apt install -y libglib2.0-0 libglx-mesa0 libgl1 && \
+    apt install -y pkg-config libicu-dev libgdiplus && \
+    apt install -y default-jdk && \
+    apt install -y libatk-bridge2.0-0 && \
+    apt install -y libpython3-dev libgtk-4-1 libnss3 xdg-utils libgbm-dev && \
+    apt install -y libjemalloc-dev && \
+    apt install -y gnupg unzip curl wget git vim less && \
+    apt install -y ghostscript && \
+    apt install -y pandoc && \
+    apt install -y texlive && \
+    apt install -y fonts-freefont-ttf fonts-noto-cjk && \
+    apt install -y postgresql-client
+
+RUN wget -q -O /ragflow/9b5ad71b2ce5302211f9c61530b329a4922fc6a4 \
+    https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken && \
+    echo "tiktoken cl100k_base encoding cached successfully"
 
 # Download resource from GitHub to /usr/share/infinity
 RUN mkdir -p /usr/share/infinity/resource && \
@@ -77,13 +95,16 @@ RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/,target=/deps 
     if [ "$arch" = "x86_64" ]; then uv_arch="x86_64"; else uv_arch="aarch64"; fi; \
     tar xzf "/deps/uv-${uv_arch}-unknown-linux-gnu.tar.gz" \
     && cp "uv-${uv_arch}-unknown-linux-gnu/"* /usr/local/bin/ \
-    && rm -rf "uv-${uv_arch}-unknown-linux-gnu" \
-    && uv python install 3.12
+    && rm -rf "uv-${uv_arch}-unknown-linux-gnu"
+  
+
+    
+ENV UV_PYTHON_INSTALL_DIR=/opt/uv/python
+RUN uv python install 3.12
 
 ENV PYTHONDONTWRITEBYTECODE=1 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
     UV_HTTP_TIMEOUT=200 \
     UV_HTTP_RETRIES=3
-ENV PATH=/root/.local/bin:$PATH
 
 # nodejs 12.22 on Ubuntu 22.04 is too old
 RUN --mount=type=cache,id=ragflow_apt,target=/var/cache/apt,sharing=locked \
@@ -148,14 +169,21 @@ RUN --mount=type=cache,id=ragflow_uv,target=/root/.cache/uv,sharing=locked \
         sed -i 's|mirrors.aliyun.com/pypi|pypi.org|g' uv.lock; \
     fi; \
     uv sync --python 3.12 --frozen && \
-    # Ensure pip is available in the venv for runtime package installation (fixes #12651)
     .venv/bin/python3 -m ensurepip --upgrade
+    # Ensure pip is available in the venv for runtime package installation (fixes #12651)
+
+# Pre-install docling at build time (runtime install impossible in airgapped environments)
+ARG DOCLING_VERSION=2.71.0
+RUN --mount=type=cache,id=ragflow_uv,target=/root/.cache/uv,sharing=locked \
+    uv pip install --no-cache-dir "docling==${DOCLING_VERSION}" easyocr
+
+RUN .venv/bin/docling-tools models download --all -o /ragflow/docling_models
 
 COPY web web
 COPY docs docs
 RUN --mount=type=cache,id=ragflow_npm,target=/root/.npm,sharing=locked \
-    cd web && NODE_OPTIONS="--max-old-space-size=8192" npm install && \
-    NODE_OPTIONS="--max-old-space-size=8192" VITE_BUILD_SOURCEMAP=false VITE_MINIFY=esbuild npm run build
+    export NODE_OPTIONS="--max-old-space-size=4096" && \
+    cd web && npm install && npm run build
 
 COPY .git /ragflow/.git
 
@@ -173,7 +201,9 @@ WORKDIR /ragflow
 # Copy Python environment and packages
 ENV VIRTUAL_ENV=/ragflow/.venv
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+COPY --from=builder /ragflow/docling_models /ragflow/docling_models
+ENV DOCLING_ARTIFACTS_PATH="/ragflow/docling_models"
+ENV PATH="${VIRTUAL_ENV}/bin:/usr/local/bin:/usr/bin:/bin"
 
 ENV PYTHONPATH=/ragflow/
 
@@ -205,4 +235,48 @@ RUN mv /etc/nginx/ragflow.conf.golang /etc/nginx/conf.d/ragflow.conf.golang && \
 COPY --from=builder /ragflow/web/dist /ragflow/web/dist
 
 COPY --from=builder /ragflow/VERSION /ragflow/VERSION
+
+# =============================================================================
+# OPENSHIFT RESTRICTED-V2 COMPATIBILITY
+# =============================================================================
+ 
+RUN rm -rf /root/nltk_data /root/.ragflow 2>/dev/null || true
+ 
+# 2. Configure nginx for non-root:
+RUN sed -i -E 's/listen\s+80(\s|;)/listen 8080\1/g' /etc/nginx/conf.d/*.conf* /etc/nginx/conf.d/* 2>/dev/null || true && \
+    sed -i 's|pid\s\+/var/run/nginx.pid|pid /tmp/nginx.pid|g' /etc/nginx/nginx.conf && \
+    grep -q '^\s*pid ' /etc/nginx/nginx.conf || sed -i '1i pid /tmp/nginx.pid;' /etc/nginx/nginx.conf && \
+    echo 'client_body_temp_path /tmp/nginx_client_body;' > /etc/nginx/conf.d/00-temp-paths.conf && \
+    echo 'proxy_temp_path /tmp/nginx_proxy;' >> /etc/nginx/conf.d/00-temp-paths.conf && \
+    echo 'fastcgi_temp_path /tmp/nginx_fastcgi;' >> /etc/nginx/conf.d/00-temp-paths.conf && \
+    echo 'uwsgi_temp_path /tmp/nginx_uwsgi;' >> /etc/nginx/conf.d/00-temp-paths.conf && \
+    echo 'scgi_temp_path /tmp/nginx_scgi;' >> /etc/nginx/conf.d/00-temp-paths.conf
+ 
+# 3. Set HOME to /tmp 
+ENV HOME=/tmp
+ 
+# 4. Set group ownership to GID 0 and mirror permissions 
+RUN chgrp -R 0 /ragflow \
+                /opt/nltk_data \
+                /opt/ragflow_home \
+                /opt/chrome \
+                /opt/uv \
+                /var/log/nginx \
+                /var/cache/nginx \
+                /var/run \
+                /etc/nginx \
+    && chmod -R g=u /ragflow \
+                    /opt/nltk_data \
+                    /opt/ragflow_home \
+                    /opt/chrome \
+                    /opt/uv \
+                    /var/log/nginx \
+                    /var/cache/nginx \
+                    /var/run \
+                    /etc/nginx \
+    && chmod -R g=u /tmp
+ 
+# 5. Set non-root user
+USER 1000
+
 ENTRYPOINT ["./entrypoint.sh"]

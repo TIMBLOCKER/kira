@@ -7,9 +7,19 @@ const NoFoundPage = () => {
   const navigate = useNavigate();
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <div className="text-6xl font-bold text-text-secondary mb-4">404</div>
+      <div className="flex items-center gap-4">
+        <img
+          src={'/logo.svg'}
+          alt="logo"
+          className="size-20 mb-8 cursor-pointer"
+        />
+      </div>
+      <h1 className="text-6xl font-bold text-transparent bg-clip-text mb-4 bg-gradient-to-l from-[#9B348E] to-[#ee0000]">
+        404
+      </h1>
       <div className="text-lg text-text-secondary mb-8">
-        Page not found, please enter a correct address.
+        Seite nicht gefunden. Bitte überprüfen Sie die URL oder kehren Sie zur
+        Startseite zurück.
       </div>
       <Button
         onClick={() => {
@@ -17,8 +27,9 @@ const NoFoundPage = () => {
             location.pathname.startsWith(Routes.Admin) ? Routes.Admin : '/',
           );
         }}
+        className="text-lg bg-gradient-to-l from-[#9B348E] to-[#ee0000]"
       >
-        Business
+        Zurück zur Startseite
       </Button>
     </div>
   );

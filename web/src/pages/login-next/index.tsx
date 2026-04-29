@@ -26,7 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, UseFormReturn } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { BgSvg } from './bg';
 import FlipCard3D, { FlipFaceContext } from './card';
@@ -35,7 +35,7 @@ import './index.less';
 type LoginFormContentProps = {
   isLoginPage: boolean;
   title: string;
-  form: UseFormReturn<any>;
+  form: ReturnType<typeof useForm>;
   loading: boolean;
   onCheck: (params: any) => Promise<void>;
   changeTitle: () => void;
@@ -176,7 +176,7 @@ function LoginFormContent({
                 data-testid="auth-submit"
                 type="submit"
                 loading={loading}
-                className="bg-metallic-gradient border-b-[#00BEB4] border-b-2 hover:bg-metallic-gradient hover:border-b-[#02bcdd] w-full my-8"
+                className="bg-metallic-gradient border-b-[#ee0000] border-b-2 hover:bg-metallic-gradient hover:border-b-[#ee0000] w-full my-8"
               >
                 {title === 'login' ? t('login') : t('continue')}
               </ButtonLoading>
@@ -209,7 +209,7 @@ function LoginFormContent({
         )}
 
         {!disablePasswordLogin && title === 'login' && registerEnabled && (
-          <div className="mt-10 text-right">
+          <div className="mt-10 text-center">
             <p className="text-text-disabled text-sm">
               {t('signInTip')}
               <Button
@@ -224,7 +224,7 @@ function LoginFormContent({
           </div>
         )}
         {!disablePasswordLogin && title === 'register' && (
-          <div className="mt-10 text-right">
+          <div className="mt-10 text-center">
             <p className="text-text-disabled text-sm">
               {t('signUpTip')}
               <Button
@@ -303,18 +303,18 @@ const Login = () => {
         });
       }
     });
-  type FormValues = z.infer<typeof FormSchema>;
-  const form = useForm<FormValues>({
+  const form = useForm({
     defaultValues: {
       nickname: '',
       email: '',
       password: '',
+      confirmPassword: '',
       remember: false,
     },
     resolver: zodResolver(FormSchema),
   });
 
-  const onCheck = async (params: FormValues) => {
+  const onCheck = async (params: z.infer<typeof FormSchema>) => {
     try {
       const rsaPassWord = rsaPsw(params.password) as string;
 
@@ -343,20 +343,20 @@ const Login = () => {
 
   return (
     <>
-      <Spotlight opcity={0.4} coverage={60} color={'rgb(128, 255, 248)'} />
+      <Spotlight opcity={0.4} coverage={60} color={'rgb(238, 0, 0)'} />
       <Spotlight
         opcity={0.3}
         coverage={12}
         X={'10%'}
         Y={'-10%'}
-        color={'rgb(128, 255, 248)'}
+        color={'rgb(238, 0, 0)'}
       />
       <Spotlight
         opcity={0.3}
         coverage={12}
         X={'90%'}
         Y={'-10%'}
-        color={'rgb(128, 255, 248)'}
+        color={'rgb(238, 0, 0)'}
       />
       <div className=" h-[inherit] relative overflow-auto">
         <BgSvg isPaused />
@@ -370,7 +370,9 @@ const Login = () => {
                 className="size-8 mr-[12] cursor-pointer"
               />
             </div>
-            <div className="text-xl font-bold self-center">RAGFlow</div>
+            <h1 className="pl-3 text-transparent bg-clip-text  bg-gradient-to-l from-[#9B348E] to-[#ee0000]">
+              KIRA
+            </h1>
           </div>
           <h1 className="text-[36px] font-medium  text-center mb-2">
             {t('title')}

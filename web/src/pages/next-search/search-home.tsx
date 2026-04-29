@@ -2,11 +2,11 @@ import { Input } from '@/components/originui/input';
 import Spotlight from '@/components/spotlight';
 import message from '@/components/ui/message';
 import { IUserInfo } from '@/interfaces/database/user-setting';
+import { cn } from '@/lib/utils.ts';
 import { Search } from 'lucide-react';
 import { Dispatch, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 import './index.less';
-import { RAGFlowLogo } from './ragflow-logo';
 
 export default function SearchHome({
   isSearching,
@@ -15,7 +15,6 @@ export default function SearchHome({
   setSearchText,
   userInfo,
   canSearch,
-  showEmbedLogo,
 }: {
   isSearching: boolean;
   setIsSearching: Dispatch<SetStateAction<boolean>>;
@@ -23,20 +22,28 @@ export default function SearchHome({
   setSearchText: Dispatch<SetStateAction<string>>;
   userInfo?: IUserInfo;
   canSearch?: boolean;
-  showEmbedLogo?: boolean;
 }) {
   // const { data: userInfo } = useFetchUserInfo();
   const { t } = useTranslation();
   return (
     <section className="relative w-full flex transition-all justify-center items-center mt-[15vh]">
       <div className="relative z-10 px-8 pt-8 flex  text-transparent flex-col justify-center items-center w-[780px]">
-        <RAGFlowLogo showEmbedIcon={showEmbedLogo}></RAGFlowLogo>
+        <h1
+          className={cn(
+            'text-4xl font-bold bg-gradient-to-l from-[#9B348E] to-[#ee0000] bg-clip-text',
+          )}
+        >
+          KIRA
+        </h1>
+
         <div className="rounded-lg  text-primary text-xl sticky flex justify-center w-full transform scale-100 mt-8 p-6 h-[240px] border">
           {!isSearching && <Spotlight className="z-0" />}
           <div className="flex flex-col justify-center items-center  w-2/3">
             {!isSearching && (
               <>
-                <p className="mb-4 transition-opacity">👋 Hi there</p>
+                <p className="mb-4 transition-opacity">
+                  👋 Hallo! Was möchtest du suchen?
+                </p>
                 <p className="mb-10 transition-opacity">
                   {userInfo && (
                     <>
