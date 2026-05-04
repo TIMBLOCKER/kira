@@ -76,15 +76,6 @@ spec:
         resources:
           {{- . | toYaml | nindent 10 }}
         {{- end }}
-        securityContext:
-          capabilities:
-            add:
-              - "IPC_LOCK"
-          runAsUser: 1000
-          # NOTE: fsGroup doesn't seem to
-          # work so use init container instead
-          # fsGroup: 1000
-          allowPrivilegeEscalation: false
       volumes:
         - name: es-data
           persistentVolumeClaim:
