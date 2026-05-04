@@ -92,8 +92,8 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "ragflow.fullname" . }}-mysql
         - name: init-script-volume
-        configMap:
-          name: mysql-init-script
+          configMap:
+            name: mysql-init-script
 ---
 apiVersion: v1
 kind: Service
