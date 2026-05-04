@@ -61,7 +61,7 @@ spec:
         {{- end }}
         envFrom:
           - secretRef:
-              name: {{ include "ragflow.fullname" . }}
+              name: {{ include "ragflow.fullname" . }}-env-config
         args:
           - server
           - "--console-address=:9001"
