@@ -213,7 +213,7 @@ mysql:
   enabled: true
   image:
     repository: quay-etaps.registry.intern/dap/mysql
-    tag: 8.0.39
+    tag: 9
     pullPolicy: IfNotPresent
     pullSecrets: []
   storage:
