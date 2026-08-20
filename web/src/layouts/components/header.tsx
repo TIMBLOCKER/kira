@@ -38,7 +38,7 @@ export function Header({
   const changeLanguage = useChangeLanguage();
 
   const {
-    data: { language = 'en', avatar, nickname },
+    data: { language = 'de', avatar, nickname },
   } = useFetchUserInfo();
 
   const { data: tenantData } = useListTenant();
@@ -100,27 +100,6 @@ export function Header({
           )}
           data-testid="auth-status"
         >
-          {!isCompact && (
-            <>
-              <a
-                className="inline-flex p-2 text-text-secondary hover:text-text-primary focus-visible:text-text-primary"
-                target="_blank"
-                href="https://discord.com/invite/NjYzJD3GM3"
-                rel="noreferrer noopener"
-              >
-                <IconFontFill name="a-DiscordIconSVGVectorIcon" />
-              </a>
-
-              <a
-                className="inline-flex p-2 text-text-secondary hover:text-text-primary focus-visible:text-text-primary"
-                target="_blank"
-                href="https://github.com/infiniflow/ragflow"
-                rel="noreferrer noopener"
-              >
-                <IconFontFill name="GitHub" />
-              </a>
-            </>
-          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

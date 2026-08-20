@@ -58,19 +58,6 @@ const menuItems = [
     'data-testid': 'nav-search',
   },
   {
-    path: Routes.Agents,
-    name: 'header.flow',
-    icon: MenuItemsIcon,
-    icon_name: 'agents',
-    'data-testid': 'nav-agent',
-  },
-  {
-    path: Routes.Memories,
-    name: 'header.memories',
-    icon: MenuItemsIcon,
-    icon_name: 'memory',
-  },
-  {
     path: Routes.Files,
     name: 'header.fileManager',
     icon: MenuItemsIcon,

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-import { IconFontFill } from '@/components/icon-font';
+
 import { RAGFlowAvatar } from '@/components/ragflow-avatar';
 import ThemeSwitch from '@/components/theme-switch';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,6 @@ import { TFunction } from 'i18next';
 import {
   LucideBox,
   LucideLogOut,
-  LucideMessagesSquare,
   LucideServer,
   LucideUnplug,
   LucideUser,
@@ -42,25 +41,9 @@ import { useHandleMenuClick } from './hooks';
 
 const menuItems = (t: TFunction) => [
   {
-    icon: <LucideBox className="size-[1em]" />,
-    label: t('setting.model'),
-    key: Routes.Model,
-    'data-testid': 'settings-nav-model-providers',
-  },
-  {
-    icon: <LucideServer className="size-[1em]" />,
-    label: t('setting.dataSources'),
-    key: Routes.DataSource,
-  },
-  {
-    icon: <LucideMessagesSquare className="size-[1em]" />,
-    label: t('setting.chatChannels'),
-    key: Routes.ChatChannel,
-  },
-  {
-    icon: <IconFontFill name="mcp" className="size-[1em]" />,
-    label: 'MCP',
-    key: Routes.Mcp,
+    icon: <LucideUser className="size-[1em]" />,
+    label: t('setting.profile'),
+    key: Routes.Profile,
   },
   {
     icon: <LucideUsers className="size-[1em]" />,
@@ -68,9 +51,15 @@ const menuItems = (t: TFunction) => [
     key: Routes.Team,
   },
   {
-    icon: <LucideUser className="size-[1em]" />,
-    label: t('setting.profile'),
-    key: Routes.Profile,
+    icon: <LucideServer className="size-[1em]" />,
+    label: t('setting.dataSources'),
+    key: Routes.DataSource,
+  },
+    {
+    icon: <LucideBox className="size-[1em]" />,
+    label: t('setting.model'),
+    key: Routes.Model,
+    'data-testid': 'settings-nav-model-providers',
   },
   {
     icon: <LucideUnplug className="size-[1em]" />,

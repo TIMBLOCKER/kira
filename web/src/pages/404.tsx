@@ -23,9 +23,9 @@ const NoFoundPage = () => {
   const navigate = useNavigate();
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <div className="text-6xl font-bold text-text-secondary mb-4">404</div>
+      <div className="text-6xl font-bold  bg-gradient-to-l from-[#ee0000] to-[#9B348E] bg-clip-text">404</div>
       <div className="text-lg text-text-secondary mb-8">
-        Page not found, please enter a correct address.
+        Seite nicht gefunden, bitte überprüfen Sie die URL oder kehren Sie zur Startseite zurück.
       </div>
       <Button
         onClick={() => {
@@ -34,7 +34,7 @@ const NoFoundPage = () => {
           );
         }}
       >
-        Business
+        Zurück zur Startseite
       </Button>
     </div>
   );

@@ -39,7 +39,7 @@ export const BgSvg = ({ isPaused = false }: { isPaused?: boolean }) => {
             y2="0%"
           >
             <stop offset="0%" stopColor="#000" />
-            <stop offset="10%" stopColor="#fff" />
+            <stop offset="10%" stopColor="#fff" />wo
             <stop offset="50%" stopColor="#fff" />
             <stop offset="90%" stopColor="#fff" />
             <stop offset="100%" stopColor="#000" />
@@ -53,7 +53,7 @@ export const BgSvg = ({ isPaused = false }: { isPaused?: boolean }) => {
             y2="0%"
           >
             <stop offset="45%" stopColor="#FFF" stopOpacity="0.2" />
-            <stop offset="48%" stopColor="#FFD700" stopOpacity="0.3" />
+            <stop offset="48%" stopColor="#ee0000" stopOpacity="0.3" />
           </linearGradient>
 
           <filter
@@ -106,7 +106,7 @@ export const BgSvg = ({ isPaused = false }: { isPaused?: boolean }) => {
         </defs>
         <path
           d={path}
-          stroke="#00BEB4"
+          stroke="#ee0000"
           strokeWidth="1"
           fill="none"
           opacity="0.1"
