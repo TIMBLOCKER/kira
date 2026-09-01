@@ -48,7 +48,7 @@ import memory.utils.infinity_conn as memory_infinity_conn
 import memory.utils.ob_conn as memory_ob_conn
 import memory.utils.gaussdb_conn as memory_gaussdb_conn
 
-TIMEZONE = os.getenv("TZ", "Asia/Shanghai")
+TIMEZONE = os.getenv("TZ", "Europe/Berlin")
 
 LLM = None
 LLM_FACTORY = None
@@ -213,8 +213,8 @@ GAUSSDB = {}
 SERENEDB = {}
 
 DOC_MAXIMUM_SIZE: int = 128 * 1024 * 1024
-DOC_BULK_SIZE: int = 32
-EMBEDDING_BATCH_SIZE: int = 16
+DOC_BULK_SIZE: int = 256
+EMBEDDING_BATCH_SIZE: int = 64
 
 PARALLEL_DEVICES: int = 0
 

@@ -13,7 +13,7 @@ ARG GITEE_TOKEN=""
 WORKDIR /ragflow
 
 # copy models downloaded via download_deps.py
-RUN mkdir -p /ragflow/rag/res/deepdoc /root/.ragflow
+RUN mkdir -p /ragflow/rag/res/deepdoc /opt/ragflow_home
 RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/huggingface.co,target=/huggingface.co \
     tar --exclude='.*' -cf - \
         /huggingface.co/InfiniFlow/text_concat_xgb_v1.0 \
@@ -23,12 +23,15 @@ RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/huggingface.co
 # https://github.com/chrismattmann/tika-python
 # This is the only way to run python-tika without internet access. Without this set, the default is to check the tika version and pull latest every time from Apache.
 RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/,target=/deps \
-    cp -r /deps/nltk_data /root/ && \
+    mkdir -p /opt/nltk_data && \
+    cp -r /deps/nltk_data/* /opt/nltk_data/ && \
     cp /deps/tika-server-standard-3.3.0.jar /deps/tika-server-standard-3.3.0.jar.md5 /ragflow/ && \
     cp /deps/cl100k_base.tiktoken /ragflow/9b5ad71b2ce5302211f9c61530b329a4922fc6a4
 
+ENV TIKTOKEN_CACHE_DIR=/ragflow
 ENV TIKA_SERVER_JAR="file:///ragflow/tika-server-standard-3.3.0.jar"
 ENV DEBIAN_FRONTEND=noninteractive
+ENV NLTK_DATA=/opt/nltk_data
 
 # Setup apt
 # Python package and implicit dependencies:
@@ -96,7 +99,6 @@ RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/,target=/deps 
 ENV PYTHONDONTWRITEBYTECODE=1 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
     UV_HTTP_TIMEOUT=200 \
     UV_HTTP_RETRIES=3
-ENV PATH=/root/.local/bin:$PATH
 
 # Install Node.js 22.x (Ubuntu 24.04's Node.js is too old)
 RUN --mount=type=cache,id=ragflow_apt,target=/var/cache/apt,sharing=locked \
@@ -235,6 +237,12 @@ COPY web/package.json web/package-lock.json web/.npmrc ./web/
 RUN --mount=type=cache,id=ragflow_npm,target=/root/.npm,sharing=locked \
     cd web && NODE_OPTIONS="--max-old-space-size=8192" npm install
 
+ARG DOCLING_VERSION=2.71.0
+RUN --mount=type=cache,id=ragflow_uv,target=/root/.cache/uv,sharing=locked \
+    uv pip install --no-cache-dir "docling==${DOCLING_VERSION}" easyocr
+
+RUN .venv/bin/docling-tools models download --all -o /ragflow/docling_models
+
 # Copy full web source and docs for the frontend build.
 COPY web web
 COPY docs docs
@@ -294,5 +302,48 @@ COPY --from=builder /ragflow/VERSION /ragflow/VERSION
 
 # Set environment variables
 ENV HF_ENDPOINT=https://hf-mirror.com
+
+# =============================================================================
+# OPENSHIFT RESTRICTED-V2 COMPATIBILITY
+# =============================================================================
+
+RUN rm -rf /root/nltk_data /root/.ragflow 2>/dev/null || true
+
+# 2. Configure nginx for non-root:
+RUN sed -i -E 's/listen\s+80(\s|;)/listen 8080\1/g' /etc/nginx/conf.d/*.conf* /etc/nginx/conf.d/* 2>/dev/null || true && \
+    sed -i 's|pid\s\+/var/run/nginx.pid|pid /tmp/nginx.pid|g' /etc/nginx/nginx.conf && \
+    grep -q '^\s*pid ' /etc/nginx/nginx.conf || sed -i '1i pid /tmp/nginx.pid;' /etc/nginx/nginx.conf && \
+    echo 'client_body_temp_path /tmp/nginx_client_body;' > /etc/nginx/conf.d/00-temp-paths.conf && \
+    echo 'proxy_temp_path /tmp/nginx_proxy;' >> /etc/nginx/conf.d/00-temp-paths.conf && \
+    echo 'fastcgi_temp_path /tmp/nginx_fastcgi;' >> /etc/nginx/conf.d/00-temp-paths.conf && \
+    echo 'uwsgi_temp_path /tmp/nginx_uwsgi;' >> /etc/nginx/conf.d/00-temp-paths.conf && \
+    echo 'scgi_temp_path /tmp/nginx_scgi;' >> /etc/nginx/conf.d/00-temp-paths.conf
+
+# 3. Set HOME to /tmp
+ENV HOME=/tmp
+
+# 4. Set group ownership to GID 0 and mirror permissions
+RUN chgrp -R 0 /ragflow \
+                /opt/nltk_data \
+                /opt/ragflow_home \
+                /opt/chrome \
+                /opt/uv \
+                /var/log/nginx \
+                /var/cache/nginx \
+                /var/run \
+                /etc/nginx \
+    && chmod -R g=u /ragflow \
+                    /opt/nltk_data \
+                    /opt/ragflow_home \
+                    /opt/chrome \
+                    /opt/uv \
+                    /var/log/nginx \
+                    /var/cache/nginx \
+                    /var/run \
+                    /etc/nginx \
+    && chmod -R g=u /tmp
+
+# 5. Set non-root user
+USER 1000
 
 ENTRYPOINT ["./entrypoint.sh"]
