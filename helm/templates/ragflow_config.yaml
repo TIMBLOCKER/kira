@@ -18,9 +18,9 @@ kind: ConfigMap
 metadata:
   name: nginx-config
 data:
-  ragflow.conf.python: |
+  ragflow.conf: |
     server {
-        listen 80;
+        listen 8080;
         server_name _;
         root /ragflow/web/dist;
 
@@ -62,17 +62,22 @@ data:
     proxy_read_timeout 3600s;
     proxy_send_timeout 3600s;
   nginx.conf: |
-    user  root;
     worker_processes  auto;
 
     error_log  /var/log/nginx/error.log notice;
-    pid        /var/run/nginx.pid;
+    pid        /tmp/nginx.pid;
 
     events {
         worker_connections  1024;
     }
 
     http {
+        client_body_temp_path /tmp/nginx_client_body;
+        proxy_temp_path       /tmp/nginx_proxy;
+        fastcgi_temp_path     /tmp/nginx_fastcgi;
+        uwsgi_temp_path       /tmp/nginx_uwsgi;
+        scgi_temp_path        /tmp/nginx_scgi;
+
         include       /etc/nginx/mime.types;
         default_type  application/octet-stream;
 
@@ -90,5 +95,5 @@ data:
         #gzip  on;
         client_max_body_size 128M;
 
-        include /etc/nginx/conf.d/ragflow.conf;
+        include /etc/nginx/ragflow-helm.conf;
     }
