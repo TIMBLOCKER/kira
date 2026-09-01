@@ -134,7 +134,7 @@ RUN --mount=type=cache,id=ragflow_apt,target=/var/cache/apt,sharing=locked \
 # The binary is pre-fetched by `download_deps.py` and shipped via
 # the ragflow_deps image, then written directly to the stagehand-go
 # cache path that `local.go:cacheDir()` constructs at runtime —
-# `/root/.cache/stagehand/lib/go_<ver>/stagehand-server-v3-<arch>`.
+# `/opt/stagehand/.cache/stagehand/lib/go_<ver>/stagehand-server-v3-<arch>`.
 ARG STAGEHAND_GO_VERSION=v3.21.0
 RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/,target=/deps \
     set -eux; \
@@ -145,7 +145,7 @@ RUN --mount=type=bind,from=infiniflow/ragflow_deps:latest,source=/,target=/deps 
         *) echo "Unsupported architecture: $arch" >&2; exit 1 ;; \
     esac; \
     stagehand_version="${STAGEHAND_GO_VERSION#v}"; \
-    stagehand_cache_dir="/root/.cache/stagehand/lib/go_${stagehand_version}"; \
+    stagehand_cache_dir="/opt/stagehand/.cache/stagehand/lib/go_${stagehand_version}"; \
     mkdir -p "${stagehand_cache_dir}"; \
     cp "/deps/stagehand-server-v3-linux-${stagehand_arch}" \
        "${stagehand_cache_dir}/stagehand-server-v3-linux-${stagehand_arch}"; \
@@ -297,6 +297,9 @@ COPY tools/scripts tools/scripts
 # Copy compiled web pages
 COPY --from=builder /ragflow/web/dist /ragflow/web/dist
 
+# Copy docling models
+COPY --from=builder /ragflow/docling_models /ragflow/docling_models
+
 # Copy version info
 COPY --from=builder /ragflow/VERSION /ragflow/VERSION
 
@@ -319,15 +322,16 @@ RUN sed -i -E 's/listen\s+80(\s|;)/listen 8080\1/g' /etc/nginx/conf.d/*.conf* /e
     echo 'uwsgi_temp_path /tmp/nginx_uwsgi;' >> /etc/nginx/conf.d/00-temp-paths.conf && \
     echo 'scgi_temp_path /tmp/nginx_scgi;' >> /etc/nginx/conf.d/00-temp-paths.conf
 
-# 3. Set HOME to /tmp
+# 3. Set HOME to /tmp and XDG_CACHE_HOME for stagehand
 ENV HOME=/tmp
+ENV XDG_CACHE_HOME=/opt/stagehand/.cache
 
 # 4. Set group ownership to GID 0 and mirror permissions
 RUN chgrp -R 0 /ragflow \
                 /opt/nltk_data \
                 /opt/ragflow_home \
                 /opt/chrome \
-                /opt/uv \
+                /opt/stagehand \
                 /var/log/nginx \
                 /var/cache/nginx \
                 /var/run \
@@ -336,7 +340,7 @@ RUN chgrp -R 0 /ragflow \
                     /opt/nltk_data \
                     /opt/ragflow_home \
                     /opt/chrome \
-                    /opt/uv \
+                    /opt/stagehand \
                     /var/log/nginx \
                     /var/cache/nginx \
                     /var/run \
